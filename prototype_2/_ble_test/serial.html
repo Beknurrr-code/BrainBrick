@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainBricks Serial Diagnostic</title>
+    <style>
+        body {
+            background: #030712;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background: #111827;
+            padding: 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid #374151;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 450px;
+            width: 90%;
+        }
+        h1 { 
+            margin-bottom: 0.5rem; 
+            color: #34d399; 
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            text-transform: uppercase;
+        }
+        p { color: #9ca3af; font-size: 0.9rem; margin-bottom: 2rem; font-weight: 500; }
+        button {
+            background: linear-gradient(to right, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 1.2rem 2rem;
+            border-radius: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.4);
+        }
+        #status {
+            margin-top: 1.5rem;
+            font-family: monospace;
+            font-size: 0.75rem;
+            padding: 1.2rem;
+            background: #000;
+            border-radius: 1rem;
+            text-align: left;
+            min-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #1f2937;
+            color: #9ca3af;
+        }
+        .success { color: #34d399; font-weight: bold; }
+        .error { color: #f87171; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Serial Debugger</h1>
+        <p>BrainBricks USB Connection Tool</p>
+        
+        <button id="connectBtn">Connect via USB Cable</button>
+        
+        <div id="status">
+            <div>1. Connect Hub to PC with USB.</div>
+            <div>2. Click the green button above.</div>
+        </div>
+    </div>
+
+    <script>
+        const statusDiv = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+
+        function log(msg, type = '') {
+            const span = document.createElement('div');
+            span.className = type;
+            span.textContent = `>>> ${msg}`;
+            statusDiv.appendChild(span);
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        connectBtn.addEventListener('click', async () => {
+            statusDiv.innerHTML = '';
+            log('Requesting Serial Port...');
+
+            try {
+                if (!navigator.serial) {
+                    throw new Error('WEB SERIAL NOT SUPPORTED. USE CHROME ON DESKTOP.');
+                }
+
+                const port = await navigator.serial.requestPort();
+                log('Port selected. Opening...', 'step');
+                
+                await port.open({ baudRate: 115200 });
+                log('SERIAL CONNECTION OPEN!', 'success');
+                
+                log('Testing handshake...');
+                const writer = port.writable.getWriter();
+                // Send a simple "get device info" LWP v3 command
+                const data = new Uint8Array([0x05, 0x00, 0x01, 0x02, 0x02]); 
+                await writer.write(data);
+                writer.releaseLock();
+                
+                log('COMMAND SENT. HUB SHOULD BEEP/RESPOND.', 'success');
+                connectBtn.textContent = 'USB Connected';
+                
+            } catch (err) {
+                log(err.message.toUpperCase(), 'error');
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>

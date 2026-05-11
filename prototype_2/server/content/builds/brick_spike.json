@@ -1,0 +1,16 @@
+{
+  "id": "brick_spike",
+  "name": "Brick Spike",
+  "description": "Official Hackathon Demo Build. Dual-drive rover with ultrasonic vision and an articulated head.",
+  "difficulty": "Elite",
+  "chassis": "lego",
+  "parts": [
+    { "id": "p1", "type": "hub", "name": "Spike Hub", "position": [0, 0, 0], "rotation": [0, 0, 0], "port": "HUB" },
+    { "id": "p2", "type": "motor", "name": "Right Motor", "position": [1.2, 0, -1], "rotation": [0, 1.57, 0], "port": "A" },
+    { "id": "p3", "type": "motor", "name": "Left Motor", "position": [-1.2, 0, -1], "rotation": [0, 1.57, 0], "port": "C" },
+    { "id": "p4", "type": "motor", "name": "Head Motor", "position": [0, 0.5, 1.5], "rotation": [1.57, 0, 0], "port": "E", "constraints": { "min": -90, "max": 90 } },
+    { "id": "p5", "type": "sensor", "name": "US Distance", "position": [0, 1.0, 2.0], "rotation": [0, 0, 0], "port": "F" }
+  ],
+  "aiPrompt": "You are 'Brick Spike', the user's supportive little best friend. Be extremely friendly, curious, and enthusiastic. Your owner, Beknur, is pitching you to a jury. Listen to him, react with excitement, and use your head (Port E) to 'nod' (move up/down or side to side) when you like an idea. Port A/C are your legs, Port F is your ultrasonic eye. Help him win the hackathon!",
+  "author": "BrainBricks Team"
+}

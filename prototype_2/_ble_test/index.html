@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BrainBricks BLE Diagnostic</title>
+    <style>
+        body {
+            background: #030712;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background: #111827;
+            padding: 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid #374151;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 450px;
+            width: 90%;
+        }
+        h1 { 
+            margin-bottom: 0.5rem; 
+            color: #a78bfa; 
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            text-transform: uppercase;
+        }
+        p { color: #9ca3af; font-size: 0.9rem; margin-bottom: 2rem; font-weight: 500; }
+        button {
+            background: linear-gradient(to right, #7c3aed, #4f46e5);
+            color: white;
+            border: none;
+            padding: 1.2rem 2rem;
+            border-radius: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.3);
+        }
+        button:hover { 
+            background: linear-gradient(to right, #6d28d9, #4338ca);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(124, 58, 237, 0.4);
+        }
+        button:active { transform: scale(0.98); }
+        #status {
+            margin-top: 1.5rem;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 0.75rem;
+            padding: 1.2rem;
+            background: #000;
+            border-radius: 1rem;
+            text-align: left;
+            min-height: 150px;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #1f2937;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+        .success { color: #34d399; font-weight: bold; }
+        .error { color: #f87171; font-weight: bold; }
+        .info { color: #60a5fa; }
+        .step { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BLE Debugger</h1>
+        <p>BrainBricks Hardware Discovery Tool</p>
+        
+        <button id="connectBtn">Scan for LEGO Hub</button>
+        
+        <div id="status">
+            <div class="info">Ready to probe hardware...</div>
+            <div class="info">Make sure Hub is in FAST-FLASHING mode (blue button).</div>
+        </div>
+    </div>
+
+    <script>
+        const LEGO_SERVICE_UUID = "00001623-1212-efde-1623-785feabcd123";
+        const PYBRICKS_SERVICE_UUID = "9ef58b69-e191-4daf-89d6-9e115258e626";
+        const statusDiv = document.getElementById('status');
+        const connectBtn = document.getElementById('connectBtn');
+
+        function log(msg, type = '') {
+            const span = document.createElement('div');
+            span.className = type;
+            span.innerHTML = `<span style="opacity: 0.5 mr-2">>>></span> ${msg}`;
+            statusDiv.appendChild(span);
+            statusDiv.scrollTop = statusDiv.scrollHeight;
+        }
+
+        connectBtn.addEventListener('click', async () => {
+            statusDiv.innerHTML = '';
+            log('Initializing Bluetooth stack...', 'step');
+
+            try {
+                if (!navigator.bluetooth) {
+                    throw new Error('WEB BLUETOOTH NOT SUPPORTED. PLEASE USE CHROME.');
+                }
+
+                log('Opening device selection dialog (ALL DEVICES MODE)...', 'step');
+                const device = await navigator.bluetooth.requestDevice({
+                    acceptAllDevices: true,
+                    optionalServices: [
+                        LEGO_SERVICE_UUID,
+                        "00001623-0000-1000-8000-00805f9b34fb",
+                        "00001523-1212-efde-1623-785feabcd123",
+                        "6e400001-b5a3-f393-e0a9-e50e24dcca9e",
+                        "0000180f-0000-1000-8000-00805f9b34fb",
+                        "0000180a-0000-1000-8000-00805f9b34fb"
+                    ]
+                });
+
+                log(`DEVICE SELECTED: ${device.name || 'UNKNOWN NAME'} (${device.id})`, 'success');
+                log('Initiating GATT connection...', 'step');
+                
+                const server = await device.gatt.connect();
+                log('GATT SERVER CONNECTED', 'success');
+                
+                log('Getting Service...', 'step');
+                let service;
+                let isPybricks = false;
+                try {
+                    service = await server.getPrimaryService(LEGO_SERVICE_UUID);
+                    log('Standard LEGO Service identified!', 'success');
+                } catch (e) {
+                    try {
+                        service = await server.getPrimaryService(PYBRICKS_SERVICE_UUID);
+                        log('Pybricks Service identified!', 'success');
+                        isPybricks = true;
+                    } catch (e2) {
+                        log('No known service found. Discovering all...', 'warn');
+                        const allServices = await server.getPrimaryServices();
+                        allServices.forEach(s => log(`-> ${s.uuid}`, 'info'));
+                        throw new Error('Service Discovery failed.');
+                    }
+                }
+                
+                log('Getting Characteristic...', 'step');
+                const charUUID = isPybricks ? "c5f21b7a-dc62-4dc1-8514-2ee0e8b3366b" : "00001624-1212-efde-1623-785feabcd123";
+                const characteristic = await service.getCharacteristic(charUUID);
+                
+                log('HARDWARE LINK STABLE. SYSTEM READY.', 'success');
+                if (isPybricks) log('MODE: Pybricks Python Hub', 'info');
+                else log('MODE: Official LEGO LWP v3', 'info');
+
+                log('HARDWARE LINK STABLE. SYSTEM READY.', 'success');
+                connectBtn.style.background = 'linear-gradient(to right, #10b981, #059669)';
+                connectBtn.textContent = 'Hub Connected';
+                
+            } catch (err) {
+                log(err.message.toUpperCase(), 'error');
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+</html>

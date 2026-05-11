@@ -1,0 +1,33 @@
+{
+  "id": "custom-1778410003712",
+  "name": "Gemini Humanoid",
+  "description": "Testing neural forge.",
+  "difficulty": "medium",
+  "parts": [
+    {
+      "id": "hub-1",
+      "type": "hub",
+      "position": [
+        0,
+        0.25,
+        0
+      ],
+      "color": "#3b82f6",
+      "scale": [
+        2,
+        0.5,
+        3
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "title": "Step",
+      "description": ""
+    }
+  ],
+  "details": {
+    "chassis": "lego"
+  }
+}

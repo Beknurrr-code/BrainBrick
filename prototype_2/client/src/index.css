@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-scan: scan 3s linear infinite;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(300%); }
+}
+
+:root {
+  --bg-color: #030712; /* gray-950 */
+  --text-color: #ffffff;
+}
+
+.light-theme {
+  --bg-color: #ffffff;
+  --text-color: #111827;
+}
+
+.light-theme body {
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.light-theme .bg-gray-950 { background-color: #f9fafb !important; }
+.light-theme .bg-gray-900 { background-color: #f3f4f6 !important; }
+.light-theme .bg-gray-900\/50 { background-color: rgba(243, 244, 246, 0.5) !important; }
+.light-theme .border-gray-800 { border-color: #e5e7eb !important; }
+.light-theme .text-white { color: #111827 !important; }
+.light-theme .text-gray-400 { color: #4b5563 !important; }
+.light-theme .text-gray-500 { color: #6b7280 !important; }
+.light-theme .bg-purple-600\/10 { background-color: rgba(147, 51, 234, 0.1) !important; }
+.light-theme nav { background-color: rgba(255, 255, 255, 0.8) !important; border-bottom-color: #e5e7eb !important; }
+
+@layer base {
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    @apply overflow-x-hidden transition-colors duration-300;
+  }
+}

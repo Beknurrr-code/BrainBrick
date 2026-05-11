@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+*.apk
+
+# Android build
+prototype_2/client/android/.gradle/
+prototype_2/client/android/app/build/
+prototype_2/client/android/build/
+prototype_2/client/android/capacitor-cordova-android-plugins/build/
+prototype_2/client/android/capacitor-community-bluetooth-le/build/
+prototype_2/client/android/local.properties
+
+# Environment
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.tmp
+scratch_test_gemini.js
+scratch_test.ts
+.gemini/
+.claude/
+
+# Old prototypes & backups (not needed for submission)
+prototype_1/
+backup_p2/
+_prototypes/

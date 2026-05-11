@@ -1,0 +1,42 @@
+{
+  "id": "rover-s-tier",
+  "name": "Neural Rover X1",
+  "description": "The ultimate autonomous exploration platform. Featuring dual-motor drive, real-time vision processing via Gemini, and adaptive terrain navigation. This 'Robot on Wheels' is your gateway to agentic robotics.",
+  "difficulty": "medium",
+  "parts": [
+    "BrainBricks Core Hub (51515)",
+    "2x High-Torque Motors (Ports A, B)",
+    "Neural Camera Mount (Front-facing)",
+    "4x All-Terrain Wheels",
+    "Logic Blocks for Collision Avoidance"
+  ],
+  "imageUrl": "/builds/rover.png",
+  "steps": [
+    {
+      "step": 1,
+      "title": "Chassis Initialization",
+      "description": "Assemble the dual-motor drivetrain using reinforced beams. This provides the 0ms latency torque needed for agile movement."
+    },
+    {
+      "step": 2,
+      "title": "Neural Hub Mounting",
+      "description": "Secure the BrainBricks Hub at the center of gravity. Ensure the display is visible for status telemetry."
+    },
+    {
+      "step": 3,
+      "title": "Smartphone Optic Link",
+      "description": "Install the vibration-dampened phone mount. Position your device so the camera has a clear 120° field of view for Gemini Vision."
+    },
+    {
+      "step": 4,
+      "title": "Port Mapping",
+      "description": "Connect the Left Motor to Port A and the Right Motor to Port B. This mapping is essential for the built-in motor controllers."
+    },
+    {
+      "step": 5,
+      "title": "Soul Initialization",
+      "description": "Mount your phone, launch the BrainBricks Hub, and pair via the dashboard to activate the robot's consciousness."
+    }
+  ],
+  "defaultAiPrompt": "You are an autonomous explorer. Navigate the room, identify objects, and describe your findings with a futuristic scientist persona."
+}
