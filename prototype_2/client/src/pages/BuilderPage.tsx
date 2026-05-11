@@ -24,7 +24,7 @@ interface RobotBuild {
 type ViewMode = "catalog" | "forge" | "launch" | "anvil";
 
 export default function BuilderPage() {
-  const { connectBLE, hubConnected } = useLegoHardware();
+  const { connectBLE, hubConnected, sendCommand } = useLegoHardware();
   const { send, on } = useSocket();
   const [sceneError, setSceneError] = useState(false);
 
@@ -233,6 +233,12 @@ export default function BuilderPage() {
         setLastResponse(payload.text);
         setNeuralStatus("SPEAKING");
         speakText(payload.text);
+        // Execute any motor actions from AI
+        if (payload.actions?.length) {
+          payload.actions.forEach((action: any) => {
+            sendCommand(action.name || "motor", action.params || {});
+          });
+        }
         // After speaking, go back to hearing if continuous
         setTimeout(() => {
           if (isContinuous) {
