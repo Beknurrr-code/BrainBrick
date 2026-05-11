@@ -423,9 +423,29 @@ export default function BuilderPage() {
 
   // Rendering Launch View (The Eyes)
   const renderLaunch = () => (
-    <div className="h-screen bg-black flex flex-col overflow-hidden">
-      {/* Eye Section - Full Height focused */}
-      <div className="flex-1 relative flex flex-col items-center justify-center bg-gray-950 overflow-hidden">
+    <div className="h-screen bg-black flex flex-col overflow-hidden p-6 font-sans">
+      {/* Top Header Area */}
+      <div className="flex items-center justify-between z-50 mb-4">
+        <div className="flex items-center gap-4">
+          <button onClick={() => { setIsContinuous(false); setView("catalog"); }} className="p-3 bg-white/5 hover:bg-red-500/20 rounded-2xl text-white transition-all border border-white/10 backdrop-blur-md">
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <div className="px-5 py-2.5 bg-white/5 backdrop-blur-md rounded-2xl border border-white/10">
+            <span className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em]">{selected?.name || "Neural Persona"}</span>
+          </div>
+        </div>
+        
+        <button 
+          onClick={() => window.location.href = '/phone'}
+          className="px-5 py-3 bg-red-600/20 hover:bg-red-600/40 rounded-2xl text-red-500 font-black uppercase tracking-widest text-[10px] transition-all border border-red-500/30 flex items-center gap-2 backdrop-blur-md"
+        >
+          <div className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+          ⚡ Live API
+        </button>
+      </div>
+
+      {/* Main Vision Area */}
+      <div className="flex-1 flex flex-col items-center justify-center relative">
         <div className="flex gap-10 md:gap-20">
           <div className="w-32 h-32 md:w-48 md:h-48 rounded-full bg-cyan-500 shadow-[0_0_80px_rgba(6,182,212,0.6)] flex items-center justify-center relative overflow-hidden">
             <div className={`w-12 h-12 md:w-20 md:h-20 bg-black rounded-full transition-all duration-300 ${isThinking ? 'scale-110 blur-sm' : 'animate-pulse'}`} />
@@ -437,13 +457,13 @@ export default function BuilderPage() {
           </div>
         </div>
 
-        {/* Neural Status Bar */}
-        <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 flex flex-col items-center pointer-events-none mt-40">
+        {/* Neural Status Floating under Eyes */}
+        <div className="flex flex-col items-center gap-4 mt-8">
            <div className={`px-6 py-2 rounded-full border backdrop-blur-xl transition-all duration-500 flex items-center gap-3 ${
              neuralStatus === "HEARING" ? "bg-cyan-500/10 border-cyan-500/40 text-cyan-400" :
              neuralStatus === "REASONING" ? "bg-purple-500/10 border-purple-500/40 text-purple-400" :
              neuralStatus === "SPEAKING" ? "bg-green-500/10 border-green-500/40 text-green-400" :
-             "bg-gray-900/40 border-gray-800 text-gray-500"
+             "bg-white/5 border-white/10 text-white/40"
            }`}>
               <div className={`w-2 h-2 rounded-full ${
                 neuralStatus === "HEARING" ? "bg-cyan-500 animate-ping" :
@@ -455,96 +475,68 @@ export default function BuilderPage() {
                 {neuralStatus === "IDLE" ? "Neural Link Standby" : `${neuralStatus}...`}
               </span>
            </div>
-           
+
            {lastTranscript && neuralStatus !== "IDLE" && (
-             <div className="mt-4 max-w-md px-8 text-center animate-in fade-in slide-in-from-bottom-4">
-                <p className="text-[10px] text-white/40 font-medium italic">"{lastTranscript}"</p>
-             </div>
+             <p className="text-[10px] text-white/40 font-medium italic animate-in fade-in slide-in-from-bottom-2">"{lastTranscript}"</p>
            )}
+           
            {lastResponse && (neuralStatus === "SPEAKING" || neuralStatus === "IDLE") && (
-             <div className="mt-3 max-w-md px-6 py-3 bg-black/60 backdrop-blur-xl rounded-2xl border border-cyan-500/20 text-center">
+             <div className="mt-2 max-w-sm px-6 py-3 bg-cyan-950/40 backdrop-blur-xl rounded-2xl border border-cyan-500/20 text-center animate-in zoom-in-95 duration-300">
                 <p className="text-xs text-cyan-300 font-medium leading-relaxed">{lastResponse}</p>
              </div>
            )}
         </div>
+      </div>
 
-        {/* Controls Overlay - Elevated Z-Index (Moved to Bottom) */}
-        <div className="absolute bottom-60 left-8 right-8 flex items-center justify-between z-[9999] pointer-events-auto">
-          <div className="flex items-center gap-4">
-            <button onClick={() => { setIsContinuous(false); setView("catalog"); }} className="p-3 bg-black/50 hover:bg-red-500/20 rounded-2xl text-white transition-all border border-white/5">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <div className="px-4 py-2 bg-black/50 backdrop-blur-md rounded-2xl border border-white/10">
-              <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest">{selected?.name}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3">
-             <button 
-                onClick={() => window.location.href = '/phone'}
-                className="px-4 py-3 bg-red-600/80 hover:bg-red-500 rounded-2xl text-white font-black uppercase tracking-widest text-[10px] transition-all shadow-[0_0_20px_rgba(220,38,38,0.4)] border border-red-400 flex items-center gap-2"
-              >
-                <div className="w-2 h-2 rounded-full bg-white animate-ping" />
-                ⚡ True Live API
-             </button>
-             {/* Mini Camera Preview */}
-            <div className="w-24 h-24 md:w-32 md:h-32 rounded-3xl bg-black border-2 border-cyan-500/30 overflow-hidden shadow-2xl shadow-cyan-900/20 relative group">
-               <video 
-                ref={videoRef} 
-                className="w-full h-full object-cover" 
-                autoPlay 
-                playsInline 
-                muted 
-               />
-               <div className="absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 bg-black/60 rounded-full border border-white/10">
+      {/* Bottom Controls Tray */}
+      <div className="mt-auto flex flex-col gap-4 pb-safe">
+        <div className="flex items-center justify-between bg-white/5 backdrop-blur-md p-4 rounded-[2.5rem] border border-white/10">
+            {/* Mini Eye Preview */}
+            <div className="w-20 h-20 rounded-2xl bg-black border border-white/10 overflow-hidden relative">
+               <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
+               <div className="absolute top-2 left-2 flex items-center gap-1 px-1.5 py-0.5 bg-black/60 rounded-full">
                   <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-[6px] font-black text-white uppercase tracking-tighter">Live Eye</span>
+                  <span className="text-[6px] font-black text-white uppercase tracking-tighter">EYE</span>
                </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-            <button 
-              onClick={() => connectBLE()}
-              className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all active:scale-95 ${hubConnected ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}
-            >
-              <div className={`w-1.5 h-1.5 rounded-full ${hubConnected ? 'bg-green-500' : 'bg-red-500'} ${hubConnected ? '' : 'animate-pulse'}`} />
-              <span className="text-[8px] font-black uppercase tracking-widest">{hubConnected ? 'Hub Linked' : 'Connect Hub'}</span>
-            </button>
-            <button 
-              onClick={() => {
-                if (!isContinuous) {
-                  if ((window as any).NativeSpeech) {
-                    (window as any).NativeSpeech.start();
-                  } else {
-                    startContinuousListening();
-                  }
-                  setIsContinuous(true);
-                  startCamera(); 
-                } else {
-                  if ((window as any).NativeSpeech) (window as any).NativeSpeech.stop();
-                  setIsContinuous(false);
-                  isStartingRef.current = false;
-                  stopListening();
-                }
-              }}
-                className={`px-6 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${isContinuous ? 'bg-orange-500 text-white animate-pulse shadow-lg shadow-orange-900/40' : 'bg-gray-800 text-gray-400'}`}
-              >
-                {isContinuous ? 'Link Running' : 'Start Neural Link'}
-              </button>
+            <div className="flex-1 flex flex-col gap-2 px-4">
+                <button 
+                  onClick={() => connectBLE()}
+                  className={`flex items-center justify-center gap-2 py-2.5 rounded-xl border transition-all active:scale-95 ${hubConnected ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}
+                >
+                  <div className={`w-1.5 h-1.5 rounded-full ${hubConnected ? 'bg-green-500' : 'bg-red-500'} ${hubConnected ? '' : 'animate-pulse'}`} />
+                  <span className="text-[8px] font-black uppercase tracking-widest">{hubConnected ? 'Hub Linked' : 'Connect Hub'}</span>
+                </button>
+                
+                <button 
+                  onClick={() => {
+                    if (!isContinuous) {
+                      if ((window as any).NativeSpeech) (window as any).NativeSpeech.start();
+                      else startContinuousListening();
+                      setIsContinuous(true);
+                      startCamera(); 
+                    } else {
+                      if ((window as any).NativeSpeech) (window as any).NativeSpeech.stop();
+                      setIsContinuous(false);
+                      isStartingRef.current = false;
+                      stopListening();
+                    }
+                  }}
+                  className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${isContinuous ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/20' : 'bg-white/5 text-white/40'}`}
+                >
+                  {isContinuous ? 'Link Active' : 'Enable Neural Link'}
+                </button>
             </div>
-          </div>
         </div>
 
-        {/* Big Terminate Button at the bottom */}
-        <div className="absolute bottom-32 w-full flex justify-center px-8">
-           <button 
-            onClick={() => { setIsContinuous(false); setView("catalog"); }}
-            className="w-full max-w-md py-6 bg-red-600 hover:bg-red-500 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-red-900/40 active:scale-95 flex items-center justify-center gap-3"
-           >
-             <X className="w-5 h-5" />
-             Terminate Neural Transmission
-           </button>
-        </div>
+        <button 
+          onClick={() => { setIsContinuous(false); setView("catalog"); }}
+          className="w-full py-5 bg-red-600/90 hover:bg-red-500 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center justify-center gap-3 border border-red-500/40 shadow-xl shadow-red-950/20"
+        >
+          <X className="w-5 h-5" />
+          Terminate Mission
+        </button>
       </div>
     </div>
   );
