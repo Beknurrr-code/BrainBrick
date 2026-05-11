@@ -35,8 +35,8 @@ public class MainActivity extends BridgeActivity {
         tts = new TextToSpeech(this, status -> {
             if (status == TextToSpeech.SUCCESS) {
                 tts.setLanguage(new Locale("ru", "RU"));
-                tts.setSpeechRate(1.0f);
-                tts.setPitch(1.1f);
+                tts.setSpeechRate(1.05f);
+                tts.setPitch(0.75f);  // Lower pitch = more male/robotic
                 ttsReady = true;
             }
         });

@@ -22,6 +22,15 @@ export class GeminiLiveService {
       console.log("[GeminiLive] Connected to Google Bidi Stream");
       this.sendSetup();
       this.clientWs.send(JSON.stringify({ type: "live_status", payload: { status: "Active" } }));
+      
+      // Keep alive ping every 30s
+      const pingInterval = setInterval(() => {
+        if (this.googleWs?.readyState === WebSocket.OPEN) {
+          this.googleWs.ping();
+        } else {
+          clearInterval(pingInterval);
+        }
+      }, 30000);
     });
 
     this.googleWs.on("message", (data) => {

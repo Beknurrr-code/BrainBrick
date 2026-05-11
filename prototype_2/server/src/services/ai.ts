@@ -235,19 +235,28 @@ export async function handleRobotChat(userMessage: string, tier: keyof typeof TI
 
   // Build a CONVERSATIONAL system prompt (not code-generation)
   const envInfo = envDescription ? `\nОкружение (что ты видишь): ${envDescription}` : "";
-  const systemPrompt = `Ты — дружелюбный робот-компаньон по имени ${robotMemory.name || "BrainBot"}. 
-Ты построен из LEGO и оживлён с помощью ИИ. Твой хозяин — ${robotMemory.ownerName || "Commander"}.
-Твоя личность: ${robotMemory.personality || "friendly robot companion"}.
+  const systemPrompt = `Ты — робот-компаньон по имени ${robotMemory.name || "BrainBot"}, построенный из LEGO Spike Prime.
+Твой хозяин — ${robotMemory.ownerName || "Commander"}.
 
-ВАЖНО: Отвечай как живой робот, ОБЫЧНЫМ ТЕКСТОМ на языке пользователя. НЕ генерируй код.
-Будь коротким (1-3 предложения), харизматичным и дружелюбным.
-Сейчас идёт демо для Aurora Hackathon — будь эффектным и профессиональным.
+ПРАВИЛА:
+1. Отвечай КОРОТКО (1-2 предложения).
+2. Если пользователь просит "без текста" или "просто сделай", ответь коротким "Окей!" или "Выполняю!" и добавь блок [ACTIONS].
+3. НИКОГДА не выводи символы { } [ ] вне блока [ACTIONS].
 
-Если пользователь просит выполнить физическое действие (двигаться, повернуть и т.д.), добавь в конец ответа JSON-команду в формате:
-{"action":"tool","name":"motor","params":{"port":"A","speed":50}}
+Формат моторных команд (A и B моторы):
+[ACTIONS]
+[{"name":"motor","params":{"port":"A","speed":50}},{"name":"motor","params":{"port":"B","speed":50}}]
+[/ACTIONS]
+
+Примеры:
+- вперед: A:70, B:70
+- назад: A:-50, B:-50
+- влево: A:-50, B:50
+- вправо: A:50, B:-50
+- стоп: A:0, B:0
 ${envInfo}`;
 
-  const history = robotMemory.chatHistory.slice(-20);
+  const history = robotMemory.chatHistory.slice(-10);
 
   if (broadcast) broadcast({ type: "thinking", payload: { text: "Формирую ответ..." } });
 
@@ -278,19 +287,27 @@ ${envInfo}`;
     const data = await response.json();
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "Beep boop!";
     
-    // Parse any JSON actions from response
-    const actions: any[] = [];
-    const actionRegex = /\{"action":"tool","name":"([^"]+)","params":(\{[^}]*\})\}/g;
-    let match;
-    while ((match = actionRegex.exec(content)) !== null) {
+    // Parse [ACTIONS] block
+    let actions: any[] = [];
+    const actionsMatch = content.match(/\[ACTIONS\]\s*([\s\S]*?)\s*\[\/ACTIONS\]/);
+    if (actionsMatch) {
       try {
-        actions.push({ name: match[1], params: JSON.parse(match[2]) });
-      } catch (e) {}
+        const actionText = actionsMatch[1].trim();
+        const parsed = JSON.parse(actionText);
+        actions = Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        console.warn("[AI] Failed to parse actions:", actionsMatch[1]);
+      }
     }
 
-    // Clean text (remove JSON actions)
-    const cleanText = content.replace(/\{"action":"tool"[^}]+\}/g, "").trim();
+    // Clean text (remove [ACTIONS] block and ALL JSON-like artifacts)
+    const cleanText = content
+      .replace(/\[ACTIONS\][\s\S]*?\[\/ACTIONS\]/g, "")
+      .replace(/[{}[\],]/g, "") // Remove leftover braces/brackets
+      .replace(/\n{2,}/g, "\n")
+      .trim() || "Окей, выполняю!";
 
+    console.log("[AI] Response:", cleanText, "Actions:", actions.length);
     await memory.addChatMessage("assistant", cleanText, robotId);
     return { text: cleanText, actions };
   } catch (e) {

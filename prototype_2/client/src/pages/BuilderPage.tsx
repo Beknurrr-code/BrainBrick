@@ -468,8 +468,8 @@ export default function BuilderPage() {
            )}
         </div>
 
-        {/* Controls Overlay - Elevated Z-Index */}
-        <div className="absolute top-8 left-8 right-8 flex items-center justify-between z-[9999] pointer-events-auto">
+        {/* Controls Overlay - Elevated Z-Index (Moved to Bottom) */}
+        <div className="absolute bottom-60 left-8 right-8 flex items-center justify-between z-[9999] pointer-events-auto">
           <div className="flex items-center gap-4">
             <button onClick={() => { setIsContinuous(false); setView("catalog"); }} className="p-3 bg-black/50 hover:bg-red-500/20 rounded-2xl text-white transition-all border border-white/5">
               <ArrowLeft className="w-6 h-6" />
@@ -503,10 +503,13 @@ export default function BuilderPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border ${hubConnected ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
-                <div className={`w-1.5 h-1.5 rounded-full ${hubConnected ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-                <span className="text-[8px] font-black uppercase tracking-widest">{hubConnected ? 'Hub Stable' : 'Hub Offline'}</span>
-              </div>
+            <button 
+              onClick={() => connectBLE()}
+              className={`flex items-center gap-2 px-4 py-2 rounded-2xl border transition-all active:scale-95 ${hubConnected ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}
+            >
+              <div className={`w-1.5 h-1.5 rounded-full ${hubConnected ? 'bg-green-500' : 'bg-red-500'} ${hubConnected ? '' : 'animate-pulse'}`} />
+              <span className="text-[8px] font-black uppercase tracking-widest">{hubConnected ? 'Hub Linked' : 'Connect Hub'}</span>
+            </button>
             <button 
               onClick={() => {
                 if (!isContinuous) {
@@ -533,7 +536,7 @@ export default function BuilderPage() {
         </div>
 
         {/* Big Terminate Button at the bottom */}
-        <div className="absolute bottom-12 w-full flex justify-center px-8">
+        <div className="absolute bottom-32 w-full flex justify-center px-8">
            <button 
             onClick={() => { setIsContinuous(false); setView("catalog"); }}
             className="w-full max-w-md py-6 bg-red-600 hover:bg-red-500 text-white rounded-[2rem] text-xs font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-red-900/40 active:scale-95 flex items-center justify-center gap-3"
