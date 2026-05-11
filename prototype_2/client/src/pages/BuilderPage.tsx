@@ -275,27 +275,27 @@ export default function BuilderPage() {
 
   const startCamera = async () => {
     try {
-      if (!videoRef.current?.srcObject) {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          video: { facingMode: "environment", width: 400, height: 300 } 
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(e => console.warn("Cam play fail", e));
-          
-          if ((window as any)._visionInterval) clearInterval((window as any)._visionInterval);
-          (window as any)._visionInterval = setInterval(() => {
-            if (videoRef.current && captureCanvasRef.current) {
-              const canvas = captureCanvasRef.current;
-              const ctx = canvas.getContext("2d");
-              if (ctx) {
-                ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-                const frame = canvas.toDataURL("image/jpeg", 0.5);
-                send("frame", frame);
-              }
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: "environment", width: 400, height: 300 } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(e => console.warn("Cam play fail", e));
+        };
+        
+        if ((window as any)._visionInterval) clearInterval((window as any)._visionInterval);
+        (window as any)._visionInterval = setInterval(() => {
+          if (videoRef.current && captureCanvasRef.current && videoRef.current.readyState === 4) {
+            const canvas = captureCanvasRef.current;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+              const frame = canvas.toDataURL("image/jpeg", 0.4);
+              send("frame", frame);
             }
-          }, 1500);
-        }
+          }
+        }, 2000);
       }
     } catch (e) {
       console.warn("Manual camera start failed", e);
@@ -538,6 +538,9 @@ export default function BuilderPage() {
           Terminate Mission
         </button>
       </div>
+
+      {/* Hidden Vision Capture Canvas */}
+      <canvas ref={captureCanvasRef} width={400} height={300} className="hidden" />
     </div>
   );
 
