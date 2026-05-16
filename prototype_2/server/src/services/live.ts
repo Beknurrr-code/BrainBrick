@@ -20,22 +20,34 @@ export class GeminiLiveService {
 
     this.googleWs.on("open", () => {
       console.log("[GeminiLive] Connected to Google Bidi Stream");
-      this.sendSetup();
-      this.clientWs.send(JSON.stringify({ type: "live_status", payload: { status: "Active" } }));
       
-      // Keep alive ping every 30s
+      // Small delay before setup to ensure stability
+      setTimeout(() => {
+        this.sendSetup();
+        this.clientWs.send(JSON.stringify({ type: "live_status", payload: { status: "Active" } }));
+      }, 500);
+      
       const pingInterval = setInterval(() => {
         if (this.googleWs?.readyState === WebSocket.OPEN) {
           this.googleWs.ping();
         } else {
           clearInterval(pingInterval);
         }
-      }, 30000);
+      }, 20000);
     });
 
     this.googleWs.on("message", (data) => {
-      const response = JSON.parse(data.toString());
-      this.handleGoogleMessage(response);
+      try {
+        const response = JSON.parse(data.toString());
+        if (response.error) {
+          console.error("[GeminiLive] Google Error Message:", response.error);
+          this.clientWs.send(JSON.stringify({ type: "live_status", payload: { status: "Error", details: response.error.message } }));
+          return;
+        }
+        this.handleGoogleMessage(response);
+      } catch (e) {
+        console.error("[GeminiLive] Parse Error:", e);
+      }
     });
 
     this.googleWs.on("error", (err) => {
@@ -43,8 +55,8 @@ export class GeminiLiveService {
       this.clientWs.send(JSON.stringify({ type: "live_status", payload: { status: "Error" } }));
     });
 
-    this.googleWs.on("close", () => {
-      console.log("[GeminiLive] Google WS Closed");
+    this.googleWs.on("close", (code, reason) => {
+      console.log(`[GeminiLive] Google WS Closed: ${code} - ${reason}`);
       this.clientWs.send(JSON.stringify({ type: "live_status", payload: { status: "Disconnected" } }));
     });
   }
@@ -54,42 +66,32 @@ export class GeminiLiveService {
       setup: {
         model: this.model,
         generation_config: {
-          response_modalities: ["AUDIO"]
+          response_modalities: ["AUDIO"],
+          speech_config: {
+            voice_config: { prebuilt_voice_config: { voice_name: "Puck" } }
+          }
         },
         tools: [
           {
             function_declarations: [
               {
                 name: "requestExpertHelp",
-                description: "Activates Expert Mode for complex robotics tasks like navigation, finding objects, or precise movements. Use this when the user asks for a task that requires long-horizon planning or spatial reasoning.",
+                description: "Activates Expert Mode for complex robotics tasks.",
                 parameters: {
                   type: "OBJECT",
-                  properties: {
-                    task: {
-                      type: "STRING",
-                      description: "The specific complex task to be performed by the Expert reasoning model."
-                    }
-                  },
+                  properties: { task: { type: "STRING" } },
                   required: ["task"]
                 }
-              },
-              {
-                name: "stopRobot",
-                description: "Immediately stops all robot motors and actions in case of emergency or when requested.",
-                parameters: { type: "OBJECT", properties: {} }
               }
             ]
           }
         ],
         system_instruction: {
-          parts: [
-            {
-              text: "You are BrainBot, an advanced AI robot companion built with LEGO and powered by Gemini. You are currently in LIVE streaming mode. You can see through the robot's camera and hear through its microphone. Respond naturally and helpfully. \n\nIMPORTANT: If the user asks for a complex robotics task (e.g. 'go find the keys', 'park yourself', 'navigate to the kitchen'), you MUST call the 'requestExpertHelp' tool. This will hand over control to a specialized robotics reasoning model. \n\nKeep your live responses concise and friendly."
-            }
-          ]
+          parts: [{ text: "You are BrainBot. You are in LIVE mode. Respond naturally and keep it short." }]
         }
       }
     };
+    console.log("[GeminiLive] Sending Setup...");
     this.googleWs?.send(JSON.stringify(setup));
   }
 
